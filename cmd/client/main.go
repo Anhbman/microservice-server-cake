@@ -1,7 +1,7 @@
 package main
 
 import (
-	"cake/rpc/query"
+	"github.com/Anhbman/microservice-server-cake/rpc/query"
 	"context"
 	"fmt"
 	"net/http"

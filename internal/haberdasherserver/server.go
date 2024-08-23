@@ -5,7 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/twitchtv/twirp"
-	pb "cake/rpc/query"
+	pb "github.com/Anhbman/microservice-server-cake/rpc/query"
 )
 
 // Server implements the Haberdasher service

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"cake/internal/haberdasherserver"
-	"cake/rpc/query"
+	"github.com/Anhbman/microservice-server-cake/internal/haberdasherserver"
+	"github.com/Anhbman/microservice-server-cake/rpc/query"
 	"net/http"
 )
 
