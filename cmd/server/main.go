@@ -1,14 +1,20 @@
 package main
 
 import (
-	"github.com/Anhbman/microservice-server-cake/internal/haberdasherserver"
-	"github.com/Anhbman/microservice-server-cake/rpc/query"
 	"net/http"
+
+	"github.com/Anhbman/microservice-server-cake/internal/controller"
+	"github.com/Anhbman/microservice-server-cake/internal/server/cake"
+	"github.com/Anhbman/microservice-server-cake/internal/storage"
+	"github.com/Anhbman/microservice-server-cake/rpc/service"
 )
 
 func main() {
-	server := &haberdasherserver.Server{} // implements Haberdasher interface
-	twirpHandler := query.NewHaberdasherServer(server)
-
-	http.ListenAndServe(":8080", twirpHandler)
+	// connect to database
+	storage.InitDB()
+	db := storage.GetDB()
+	cakeHandle := cake.NewProcessor(db)
+	handle := controller.NewServiceServer(cakeHandle)
+	server  := service.NewServiceServer(handle)
+	http.ListenAndServe(":8081", server)
 }

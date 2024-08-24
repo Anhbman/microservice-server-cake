@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package rpc.service;
+option go_package = "/rpc/service";
+
+import "rpc/service/cake.proto";
+import "google/protobuf/empty.proto";
+
+
+service Service {
+  rpc CreateCake(CreateCakeRequest) returns (google.protobuf.Empty);
+  rpc GetCakeById(GetCakeByIdRequest) returns (GetCakeByIdResponse);
+}
