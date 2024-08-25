@@ -16,8 +16,6 @@ import proto "google.golang.org/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
-import google_protobuf "google.golang.org/protobuf/types/known/emptypb"
-
 import bytes "bytes"
 import errors "errors"
 import path "path"
@@ -34,7 +32,7 @@ const _ = twirp.TwirpPackageMinVersion_8_1_0
 // =================
 
 type Service interface {
-	CreateCake(context.Context, *CreateCakeRequest) (*google_protobuf.Empty, error)
+	CreateCake(context.Context, *CreateCakeRequest) (*SearchCake, error)
 
 	GetCakeById(context.Context, *GetCakeByIdRequest) (*GetCakeByIdResponse, error)
 }
@@ -86,13 +84,13 @@ func NewServiceProtobufClient(baseURL string, client HTTPClient, opts ...twirp.C
 	}
 }
 
-func (c *serviceProtobufClient) CreateCake(ctx context.Context, in *CreateCakeRequest) (*google_protobuf.Empty, error) {
+func (c *serviceProtobufClient) CreateCake(ctx context.Context, in *CreateCakeRequest) (*SearchCake, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "rpc.service")
 	ctx = ctxsetters.WithServiceName(ctx, "Service")
 	ctx = ctxsetters.WithMethodName(ctx, "CreateCake")
 	caller := c.callCreateCake
 	if c.interceptor != nil {
-		caller = func(ctx context.Context, req *CreateCakeRequest) (*google_protobuf.Empty, error) {
+		caller = func(ctx context.Context, req *CreateCakeRequest) (*SearchCake, error) {
 			resp, err := c.interceptor(
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*CreateCakeRequest)
@@ -103,9 +101,9 @@ func (c *serviceProtobufClient) CreateCake(ctx context.Context, in *CreateCakeRe
 				},
 			)(ctx, req)
 			if resp != nil {
-				typedResp, ok := resp.(*google_protobuf.Empty)
+				typedResp, ok := resp.(*SearchCake)
 				if !ok {
-					return nil, twirp.InternalError("failed type assertion resp.(*google_protobuf.Empty) when calling interceptor")
+					return nil, twirp.InternalError("failed type assertion resp.(*SearchCake) when calling interceptor")
 				}
 				return typedResp, err
 			}
@@ -115,8 +113,8 @@ func (c *serviceProtobufClient) CreateCake(ctx context.Context, in *CreateCakeRe
 	return caller(ctx, in)
 }
 
-func (c *serviceProtobufClient) callCreateCake(ctx context.Context, in *CreateCakeRequest) (*google_protobuf.Empty, error) {
-	out := new(google_protobuf.Empty)
+func (c *serviceProtobufClient) callCreateCake(ctx context.Context, in *CreateCakeRequest) (*SearchCake, error) {
+	out := new(SearchCake)
 	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
@@ -225,13 +223,13 @@ func NewServiceJSONClient(baseURL string, client HTTPClient, opts ...twirp.Clien
 	}
 }
 
-func (c *serviceJSONClient) CreateCake(ctx context.Context, in *CreateCakeRequest) (*google_protobuf.Empty, error) {
+func (c *serviceJSONClient) CreateCake(ctx context.Context, in *CreateCakeRequest) (*SearchCake, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "rpc.service")
 	ctx = ctxsetters.WithServiceName(ctx, "Service")
 	ctx = ctxsetters.WithMethodName(ctx, "CreateCake")
 	caller := c.callCreateCake
 	if c.interceptor != nil {
-		caller = func(ctx context.Context, req *CreateCakeRequest) (*google_protobuf.Empty, error) {
+		caller = func(ctx context.Context, req *CreateCakeRequest) (*SearchCake, error) {
 			resp, err := c.interceptor(
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*CreateCakeRequest)
@@ -242,9 +240,9 @@ func (c *serviceJSONClient) CreateCake(ctx context.Context, in *CreateCakeReques
 				},
 			)(ctx, req)
 			if resp != nil {
-				typedResp, ok := resp.(*google_protobuf.Empty)
+				typedResp, ok := resp.(*SearchCake)
 				if !ok {
-					return nil, twirp.InternalError("failed type assertion resp.(*google_protobuf.Empty) when calling interceptor")
+					return nil, twirp.InternalError("failed type assertion resp.(*SearchCake) when calling interceptor")
 				}
 				return typedResp, err
 			}
@@ -254,8 +252,8 @@ func (c *serviceJSONClient) CreateCake(ctx context.Context, in *CreateCakeReques
 	return caller(ctx, in)
 }
 
-func (c *serviceJSONClient) callCreateCake(ctx context.Context, in *CreateCakeRequest) (*google_protobuf.Empty, error) {
-	out := new(google_protobuf.Empty)
+func (c *serviceJSONClient) callCreateCake(ctx context.Context, in *CreateCakeRequest) (*SearchCake, error) {
+	out := new(SearchCake)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
@@ -469,7 +467,7 @@ func (s *serviceServer) serveCreateCakeJSON(ctx context.Context, resp http.Respo
 
 	handler := s.Service.CreateCake
 	if s.interceptor != nil {
-		handler = func(ctx context.Context, req *CreateCakeRequest) (*google_protobuf.Empty, error) {
+		handler = func(ctx context.Context, req *CreateCakeRequest) (*SearchCake, error) {
 			resp, err := s.interceptor(
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*CreateCakeRequest)
@@ -480,9 +478,9 @@ func (s *serviceServer) serveCreateCakeJSON(ctx context.Context, resp http.Respo
 				},
 			)(ctx, req)
 			if resp != nil {
-				typedResp, ok := resp.(*google_protobuf.Empty)
+				typedResp, ok := resp.(*SearchCake)
 				if !ok {
-					return nil, twirp.InternalError("failed type assertion resp.(*google_protobuf.Empty) when calling interceptor")
+					return nil, twirp.InternalError("failed type assertion resp.(*SearchCake) when calling interceptor")
 				}
 				return typedResp, err
 			}
@@ -491,7 +489,7 @@ func (s *serviceServer) serveCreateCakeJSON(ctx context.Context, resp http.Respo
 	}
 
 	// Call service method
-	var respContent *google_protobuf.Empty
+	var respContent *SearchCake
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
 		respContent, err = handler(ctx, reqContent)
@@ -502,7 +500,7 @@ func (s *serviceServer) serveCreateCakeJSON(ctx context.Context, resp http.Respo
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *google_protobuf.Empty and nil error while calling CreateCake. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *SearchCake and nil error while calling CreateCake. nil responses are not supported"))
 		return
 	}
 
@@ -550,7 +548,7 @@ func (s *serviceServer) serveCreateCakeProtobuf(ctx context.Context, resp http.R
 
 	handler := s.Service.CreateCake
 	if s.interceptor != nil {
-		handler = func(ctx context.Context, req *CreateCakeRequest) (*google_protobuf.Empty, error) {
+		handler = func(ctx context.Context, req *CreateCakeRequest) (*SearchCake, error) {
 			resp, err := s.interceptor(
 				func(ctx context.Context, req interface{}) (interface{}, error) {
 					typedReq, ok := req.(*CreateCakeRequest)
@@ -561,9 +559,9 @@ func (s *serviceServer) serveCreateCakeProtobuf(ctx context.Context, resp http.R
 				},
 			)(ctx, req)
 			if resp != nil {
-				typedResp, ok := resp.(*google_protobuf.Empty)
+				typedResp, ok := resp.(*SearchCake)
 				if !ok {
-					return nil, twirp.InternalError("failed type assertion resp.(*google_protobuf.Empty) when calling interceptor")
+					return nil, twirp.InternalError("failed type assertion resp.(*SearchCake) when calling interceptor")
 				}
 				return typedResp, err
 			}
@@ -572,7 +570,7 @@ func (s *serviceServer) serveCreateCakeProtobuf(ctx context.Context, resp http.R
 	}
 
 	// Call service method
-	var respContent *google_protobuf.Empty
+	var respContent *SearchCake
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
 		respContent, err = handler(ctx, reqContent)
@@ -583,7 +581,7 @@ func (s *serviceServer) serveCreateCakeProtobuf(ctx context.Context, resp http.R
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *google_protobuf.Empty and nil error while calling CreateCake. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *SearchCake and nil error while calling CreateCake. nil responses are not supported"))
 		return
 	}
 
@@ -1368,16 +1366,15 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 176 bytes of a gzipped FileDescriptorProto
+	// 153 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x2c, 0x2a, 0x48, 0xd6,
 	0x2f, 0x4e, 0x2d, 0x2a, 0xcb, 0x4c, 0x4e, 0x85, 0xd1, 0x7a, 0x05, 0x45, 0xf9, 0x25, 0xf9, 0x42,
 	0xdc, 0x45, 0x05, 0xc9, 0x7a, 0x50, 0x21, 0x29, 0x31, 0x64, 0x75, 0xc9, 0x89, 0xd9, 0x50, 0x45,
-	0x52, 0xd2, 0xe9, 0xf9, 0xf9, 0xe9, 0x39, 0xa9, 0xfa, 0x60, 0x5e, 0x52, 0x69, 0x9a, 0x7e, 0x6a,
-	0x6e, 0x41, 0x49, 0x25, 0x44, 0xd2, 0x68, 0x21, 0x23, 0x17, 0x7b, 0x30, 0x44, 0x8f, 0x90, 0x0b,
-	0x17, 0x97, 0x73, 0x51, 0x6a, 0x62, 0x49, 0xaa, 0x73, 0x62, 0x76, 0xaa, 0x90, 0x9c, 0x1e, 0x92,
-	0xe1, 0x7a, 0x08, 0x89, 0xa0, 0xd4, 0xc2, 0xd2, 0xd4, 0xe2, 0x12, 0x29, 0x31, 0x3d, 0x88, 0xb9,
-	0x7a, 0x30, 0x73, 0xf5, 0x5c, 0x41, 0xe6, 0x0a, 0x05, 0x70, 0x71, 0xbb, 0xa7, 0x96, 0x80, 0x54,
-	0x3a, 0x55, 0x7a, 0xa6, 0x08, 0xc9, 0xa3, 0x18, 0x83, 0x24, 0x03, 0x33, 0x47, 0x01, 0xb7, 0x82,
-	0xe2, 0x82, 0xfc, 0xbc, 0xe2, 0x54, 0x27, 0xbe, 0x28, 0x1e, 0x7d, 0x24, 0xbf, 0x25, 0xb1, 0x81,
-	0x6d, 0x34, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x0b, 0x7f, 0x91, 0x2a, 0x19, 0x01, 0x00, 0x00,
+	0x46, 0x8b, 0x18, 0xb9, 0xd8, 0x83, 0x21, 0xc2, 0x42, 0xae, 0x5c, 0x5c, 0xce, 0x45, 0xa9, 0x89,
+	0x25, 0xa9, 0xce, 0x89, 0xd9, 0xa9, 0x42, 0x72, 0x7a, 0x48, 0xfa, 0xf5, 0x10, 0x12, 0x41, 0xa9,
+	0x85, 0xa5, 0xa9, 0xc5, 0x25, 0x52, 0xe2, 0x28, 0xf2, 0xc1, 0xa9, 0x89, 0x45, 0xc9, 0x19, 0x60,
+	0x8d, 0x01, 0x5c, 0xdc, 0xee, 0xa9, 0x25, 0x20, 0xa6, 0x53, 0xa5, 0x67, 0x8a, 0x90, 0x3c, 0x8a,
+	0x3a, 0x24, 0x19, 0x98, 0x41, 0x0a, 0xb8, 0x15, 0x14, 0x17, 0xe4, 0xe7, 0x15, 0xa7, 0x3a, 0xf1,
+	0x45, 0xf1, 0xe8, 0x23, 0xb9, 0x3f, 0x89, 0x0d, 0xec, 0x76, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0x3e, 0x47, 0x8c, 0xb5, 0xfd, 0x00, 0x00, 0x00,
 }
