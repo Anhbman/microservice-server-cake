@@ -6,7 +6,6 @@ import (
 	"github.com/Anhbman/microservice-server-cake/internal/models"
 	pb "github.com/Anhbman/microservice-server-cake/rpc/service"
 	"github.com/labstack/gommon/log"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"gorm.io/gorm"
 )
 
@@ -18,7 +17,7 @@ func NewProcessor(db *gorm.DB) *Processor {
 	return &Processor{db: db}
 }
 
-func (p *Processor) Create(ctx context.Context, cake *pb.CreateCakeRequest) (*emptypb.Empty, error) {
+func (p *Processor) Create(ctx context.Context, cake *pb.CreateCakeRequest) (*pb.SearchCake, error) {
 	var cakeInsert = models.Cake{
 		Name:        cake.Name,
 		Price:       cake.Price,
@@ -31,7 +30,13 @@ func (p *Processor) Create(ctx context.Context, cake *pb.CreateCakeRequest) (*em
 		log.Errorf("Cannot create cake: %s", err)
 		return nil, err
 	}
-	return nil, nil
+	return &pb.SearchCake{
+		Id:          int64(cakeInsert.ID),
+		Name:        cakeInsert.Name,
+		Description: cakeInsert.Description,
+		Price:       cakeInsert.Price,
+		ImageUrl:    cakeInsert.ImageUrl,
+	}, nil
 }
 
 func (p *Processor) GetCakeById(ctx context.Context, id *pb.GetCakeByIdRequest) (*pb.GetCakeByIdResponse, error) {
