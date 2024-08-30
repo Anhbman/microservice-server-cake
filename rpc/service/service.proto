@@ -7,6 +7,7 @@ import "rpc/service/cake.proto";
 
 
 service Service {
-  rpc CreateCake(CreateCakeRequest) returns (SearchCake);
+  rpc CreateCake(CreateCakeRequest) returns (Cake);
   rpc GetCakeById(GetCakeByIdRequest) returns (GetCakeByIdResponse);
+  rpc SearchCake(SearchCakeRequest) returns (SearchCakeResponse);
 }

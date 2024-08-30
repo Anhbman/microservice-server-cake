@@ -5,12 +5,12 @@ option go_package = "/rpc/service";
 
 message SearchCakeRequest {
   string name = 1;
-  int64 page = 2;
-  int64 page_size = 3;
-  int64 user_id = 4;
+  int64 page = 3;
+  int64 page_size = 4;
+  int64 user_id = 5;
 }
 
-message SearchCake {
+message Cake {
   int64 id = 1;
   string name = 2;
   string description = 3;
@@ -20,7 +20,7 @@ message SearchCake {
 }
 
 message SearchCakeResponse {
-  repeated SearchCake cakes = 1;
+  repeated Cake cakes = 1;
 }
 
 message CreateCakeRequest {

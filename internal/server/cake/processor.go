@@ -17,7 +17,7 @@ func NewProcessor(db *gorm.DB) *Processor {
 	return &Processor{db: db}
 }
 
-func (p *Processor) Create(ctx context.Context, cake *pb.CreateCakeRequest) (*pb.SearchCake, error) {
+func (p *Processor) Create(ctx context.Context, cake *pb.CreateCakeRequest) (*pb.Cake, error) {
 	var cakeInsert = models.Cake{
 		Name:        cake.Name,
 		Price:       cake.Price,
@@ -30,7 +30,7 @@ func (p *Processor) Create(ctx context.Context, cake *pb.CreateCakeRequest) (*pb
 		log.Errorf("Cannot create cake: %s", err)
 		return nil, err
 	}
-	return &pb.SearchCake{
+	return &pb.Cake{
 		Id:          int64(cakeInsert.ID),
 		Name:        cakeInsert.Name,
 		Description: cakeInsert.Description,
@@ -53,5 +53,48 @@ func (p *Processor) GetCakeById(ctx context.Context, id *pb.GetCakeByIdRequest) 
 		Price:       cake.Price,
 		ImageUrl:    cake.ImageUrl,
 		UserId:      uint64(cake.UserID),
+	}, nil
+}
+
+func (p *Processor) SearchCake(ctx context.Context, search *pb.SearchCakeRequest) (*pb.SearchCakeResponse, error) {
+
+	conditions := make(map[string]interface{})
+	if search.Name != "" {
+		conditions["name"] = search.Name
+	}
+	
+	if search.UserId != 0 {
+		conditions["user_id"] = search.UserId
+	}
+
+	if search.Page < 0 {
+		search.Page = 0
+	}
+
+	if search.PageSize < 0 {
+		search.PageSize = 10
+	}
+
+	var cakes []models.Cake
+	err := p.db.Where(conditions).Offset(int(search.Page * search.PageSize)).Limit(int(search.PageSize)).Find(&cakes).Error
+	if err != nil {
+		log.Errorf("Cannot search cake: %s", err)
+		return nil, err
+	}
+
+	resp := make([]*pb.Cake, len(cakes))
+
+	for i, cake := range cakes {
+		resp[i] = &pb.Cake{
+			Id:          int64(cake.ID),
+			Name:        cake.Name,
+			Description: cake.Description,
+			Price:       cake.Price,
+			ImageUrl:    cake.ImageUrl,
+			UserId:      uint64(cake.UserID),
+		}
+	}
+	return &pb.SearchCakeResponse{
+		Cakes: resp,
 	}, nil
 }
