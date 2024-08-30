@@ -2,8 +2,10 @@ package cake
 
 import (
 	"context"
+	"strings"
 
 	"github.com/Anhbman/microservice-server-cake/internal/models"
+	"github.com/Anhbman/microservice-server-cake/internal/utils"
 	pb "github.com/Anhbman/microservice-server-cake/rpc/service"
 	"github.com/labstack/gommon/log"
 	"gorm.io/gorm"
@@ -59,16 +61,13 @@ func (p *Processor) GetCakeById(ctx context.Context, id *pb.GetCakeByIdRequest) 
 func (p *Processor) SearchCake(ctx context.Context, search *pb.SearchCakeRequest) (*pb.SearchCakeResponse, error) {
 
 	conditions := make(map[string]interface{})
-	if search.Name != "" {
-		conditions["name"] = search.Name
-	}
-	
+
 	if search.UserId != 0 {
 		conditions["user_id"] = search.UserId
 	}
 
-	if search.Page < 0 {
-		search.Page = 0
+	if search.Page < 1 {
+		search.Page = 1
 	}
 
 	if search.PageSize < 0 {
@@ -76,7 +75,8 @@ func (p *Processor) SearchCake(ctx context.Context, search *pb.SearchCakeRequest
 	}
 
 	var cakes []models.Cake
-	err := p.db.Where(conditions).Offset(int(search.Page * search.PageSize)).Limit(int(search.PageSize)).Find(&cakes).Error
+	paginate := utils.NewPaginate(int(search.PageSize), int(search.Page))
+	err := p.db.Where("name LIKE ?", "%"+strings.ToLower(search.Name)+"%").Where(conditions).Scopes(paginate.PaginatedResult).Find(&cakes).Error
 	if err != nil {
 		log.Errorf("Cannot search cake: %s", err)
 		return nil, err
