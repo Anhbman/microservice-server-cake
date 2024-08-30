@@ -10,4 +10,5 @@ service Service {
   rpc CreateCake(CreateCakeRequest) returns (Cake);
   rpc GetCakeById(GetCakeByIdRequest) returns (GetCakeByIdResponse);
   rpc SearchCake(SearchCakeRequest) returns (SearchCakeResponse);
+  rpc UpdateCake(Cake) returns (Cake);
 }

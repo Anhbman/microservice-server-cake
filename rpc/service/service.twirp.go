@@ -37,6 +37,8 @@ type Service interface {
 	GetCakeById(context.Context, *GetCakeByIdRequest) (*GetCakeByIdResponse, error)
 
 	SearchCake(context.Context, *SearchCakeRequest) (*SearchCakeResponse, error)
+
+	UpdateCake(context.Context, *Cake) (*Cake, error)
 }
 
 // =======================
@@ -45,7 +47,7 @@ type Service interface {
 
 type serviceProtobufClient struct {
 	client      HTTPClient
-	urls        [3]string
+	urls        [4]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -73,10 +75,11 @@ func NewServiceProtobufClient(baseURL string, client HTTPClient, opts ...twirp.C
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "rpc.service", "Service")
-	urls := [3]string{
+	urls := [4]string{
 		serviceURL + "CreateCake",
 		serviceURL + "GetCakeById",
 		serviceURL + "SearchCake",
+		serviceURL + "UpdateCake",
 	}
 
 	return &serviceProtobufClient{
@@ -225,13 +228,59 @@ func (c *serviceProtobufClient) callSearchCake(ctx context.Context, in *SearchCa
 	return out, nil
 }
 
+func (c *serviceProtobufClient) UpdateCake(ctx context.Context, in *Cake) (*Cake, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "rpc.service")
+	ctx = ctxsetters.WithServiceName(ctx, "Service")
+	ctx = ctxsetters.WithMethodName(ctx, "UpdateCake")
+	caller := c.callUpdateCake
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Cake) (*Cake, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Cake)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Cake) when calling interceptor")
+					}
+					return c.callUpdateCake(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Cake)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Cake) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *serviceProtobufClient) callUpdateCake(ctx context.Context, in *Cake) (*Cake, error) {
+	out := new(Cake)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[3], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
 // ===================
 // Service JSON Client
 // ===================
 
 type serviceJSONClient struct {
 	client      HTTPClient
-	urls        [3]string
+	urls        [4]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -259,10 +308,11 @@ func NewServiceJSONClient(baseURL string, client HTTPClient, opts ...twirp.Clien
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "rpc.service", "Service")
-	urls := [3]string{
+	urls := [4]string{
 		serviceURL + "CreateCake",
 		serviceURL + "GetCakeById",
 		serviceURL + "SearchCake",
+		serviceURL + "UpdateCake",
 	}
 
 	return &serviceJSONClient{
@@ -411,6 +461,52 @@ func (c *serviceJSONClient) callSearchCake(ctx context.Context, in *SearchCakeRe
 	return out, nil
 }
 
+func (c *serviceJSONClient) UpdateCake(ctx context.Context, in *Cake) (*Cake, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "rpc.service")
+	ctx = ctxsetters.WithServiceName(ctx, "Service")
+	ctx = ctxsetters.WithMethodName(ctx, "UpdateCake")
+	caller := c.callUpdateCake
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Cake) (*Cake, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Cake)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Cake) when calling interceptor")
+					}
+					return c.callUpdateCake(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Cake)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Cake) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *serviceJSONClient) callUpdateCake(ctx context.Context, in *Cake) (*Cake, error) {
+	out := new(Cake)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[3], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
 // ======================
 // Service Server Handler
 // ======================
@@ -516,6 +612,9 @@ func (s *serviceServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	case "SearchCake":
 		s.serveSearchCake(ctx, resp, req)
+		return
+	case "UpdateCake":
+		s.serveUpdateCake(ctx, resp, req)
 		return
 	default:
 		msg := fmt.Sprintf("no handler for path %q", req.URL.Path)
@@ -1041,6 +1140,186 @@ func (s *serviceServer) serveSearchCakeProtobuf(ctx context.Context, resp http.R
 	}
 	if respContent == nil {
 		s.writeError(ctx, resp, twirp.InternalError("received a nil *SearchCakeResponse and nil error while calling SearchCake. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *serviceServer) serveUpdateCake(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveUpdateCakeJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveUpdateCakeProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *serviceServer) serveUpdateCakeJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "UpdateCake")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+	reqContent := new(Cake)
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+
+	handler := s.Service.UpdateCake
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Cake) (*Cake, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Cake)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Cake) when calling interceptor")
+					}
+					return s.Service.UpdateCake(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Cake)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Cake) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *Cake
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Cake and nil error while calling UpdateCake. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *serviceServer) serveUpdateCakeProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "UpdateCake")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := io.ReadAll(req.Body)
+	if err != nil {
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
+		return
+	}
+	reqContent := new(Cake)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
+		return
+	}
+
+	handler := s.Service.UpdateCake
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Cake) (*Cake, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Cake)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Cake) when calling interceptor")
+					}
+					return s.Service.UpdateCake(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Cake)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Cake) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *Cake
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Cake and nil error while calling UpdateCake. nil responses are not supported"))
 		return
 	}
 
@@ -1645,16 +1924,17 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 169 bytes of a gzipped FileDescriptorProto
+	// 182 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x2c, 0x2a, 0x48, 0xd6,
 	0x2f, 0x4e, 0x2d, 0x2a, 0xcb, 0x4c, 0x4e, 0x85, 0xd1, 0x7a, 0x05, 0x45, 0xf9, 0x25, 0xf9, 0x42,
 	0xdc, 0x45, 0x05, 0xc9, 0x7a, 0x50, 0x21, 0x29, 0x31, 0x64, 0x75, 0xc9, 0x89, 0xd9, 0x50, 0x45,
-	0x46, 0xaf, 0x19, 0xb9, 0xd8, 0x83, 0x21, 0xc2, 0x42, 0xf6, 0x5c, 0x5c, 0xce, 0x45, 0xa9, 0x89,
+	0x46, 0xf3, 0x99, 0xb8, 0xd8, 0x83, 0x21, 0xc2, 0x42, 0xf6, 0x5c, 0x5c, 0xce, 0x45, 0xa9, 0x89,
 	0x25, 0xa9, 0xce, 0x89, 0xd9, 0xa9, 0x42, 0x72, 0x7a, 0x48, 0xfa, 0xf5, 0x10, 0x12, 0x41, 0xa9,
 	0x85, 0xa5, 0xa9, 0xc5, 0x25, 0x52, 0x82, 0xa8, 0xf2, 0x20, 0x2d, 0x01, 0x5c, 0xdc, 0xee, 0xa9,
 	0x25, 0x20, 0xa6, 0x53, 0xa5, 0x67, 0x8a, 0x90, 0x3c, 0x8a, 0x0a, 0x24, 0x19, 0x98, 0x11, 0x0a,
 	0xb8, 0x15, 0x14, 0x17, 0xe4, 0xe7, 0x15, 0xa7, 0x0a, 0xf9, 0x72, 0x71, 0x05, 0xa7, 0x26, 0x16,
-	0x25, 0x67, 0x60, 0x71, 0x12, 0x42, 0x02, 0x66, 0x9e, 0x3c, 0x4e, 0x79, 0x88, 0x71, 0x4e, 0x7c,
-	0x51, 0x3c, 0xfa, 0x48, 0x01, 0x91, 0xc4, 0x06, 0x0e, 0x04, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0x00, 0x1f, 0x99, 0x70, 0x46, 0x01, 0x00, 0x00,
+	0x25, 0x67, 0x60, 0x71, 0x12, 0x42, 0x02, 0x66, 0x9e, 0x3c, 0x4e, 0x79, 0xa8, 0x71, 0x46, 0x5c,
+	0x5c, 0xa1, 0x05, 0x29, 0x30, 0x1f, 0x62, 0xfa, 0x00, 0x8b, 0xa7, 0x9c, 0xf8, 0xa2, 0x78, 0xf4,
+	0x91, 0x02, 0x2f, 0x89, 0x0d, 0x1c, 0x70, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0x4f, 0x72,
+	0xbc, 0x0c, 0x7a, 0x01, 0x00, 0x00,
 }

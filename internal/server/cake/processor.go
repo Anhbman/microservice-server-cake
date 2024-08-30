@@ -2,12 +2,14 @@ package cake
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/Anhbman/microservice-server-cake/internal/models"
 	"github.com/Anhbman/microservice-server-cake/internal/utils"
 	pb "github.com/Anhbman/microservice-server-cake/rpc/service"
 	"github.com/labstack/gommon/log"
+	"github.com/twitchtv/twirp"
 	"gorm.io/gorm"
 )
 
@@ -30,7 +32,7 @@ func (p *Processor) Create(ctx context.Context, cake *pb.CreateCakeRequest) (*pb
 	err := p.db.Create(&cakeInsert).Error
 	if err != nil {
 		log.Errorf("Cannot create cake: %s", err)
-		return nil, err
+		return nil, twirp.Internal.Errorf("Cannot create cake: %w", err)
 	}
 	return &pb.Cake{
 		Id:          int64(cakeInsert.ID),
@@ -46,7 +48,7 @@ func (p *Processor) GetCakeById(ctx context.Context, id *pb.GetCakeByIdRequest) 
 	err := p.db.First(&cake, id.Id).Error
 	if err != nil {
 		log.Errorf("cake %s", err)
-		return nil, err
+		return nil, twirp.NotFoundError("Cannot find cake: " + fmt.Sprint(id.Id))
 	}
 	return &pb.GetCakeByIdResponse{
 		Id:          int64(cake.ID),
@@ -79,7 +81,7 @@ func (p *Processor) SearchCake(ctx context.Context, search *pb.SearchCakeRequest
 	err := p.db.Where("name LIKE ?", "%"+strings.ToLower(search.Name)+"%").Where(conditions).Scopes(paginate.PaginatedResult).Find(&cakes).Error
 	if err != nil {
 		log.Errorf("Cannot search cake: %s", err)
-		return nil, err
+		return nil, twirp.Internal.Errorf("Cannot search cake: %w", err)
 	}
 
 	resp := make([]*pb.Cake, len(cakes))
@@ -96,5 +98,31 @@ func (p *Processor) SearchCake(ctx context.Context, search *pb.SearchCakeRequest
 	}
 	return &pb.SearchCakeResponse{
 		Cakes: resp,
+	}, nil
+}
+
+func (p *Processor) UpdateCake(ctx context.Context, cake *pb.Cake) (*pb.Cake, error) {
+	cakeUpdate := models.Cake{}
+	err := p.db.First(&cakeUpdate, cake.Id).Error
+	if err != nil {
+		log.Errorf("Cannot find cake: %s", err)
+		return nil, twirp.NotFoundError("Cannot find cake: " + fmt.Sprint(cake.Id))
+	}
+	cakeUpdate.Name = cake.Name
+	cakeUpdate.Description = cake.Description
+	cakeUpdate.Price = cake.Price
+	cakeUpdate.ImageUrl = cake.ImageUrl
+	err = p.db.Save(&cakeUpdate).Error
+	if err != nil {
+		log.Errorf("Cannot update cake: %s", err)
+		return nil, twirp.Internal.Errorf("Cannot update cake: %w", err)
+	}
+	return &pb.Cake{
+		Id:          int64(cakeUpdate.ID),
+		Name:        cakeUpdate.Name,
+		Description: cakeUpdate.Description,
+		Price:       cakeUpdate.Price,
+		ImageUrl:    cakeUpdate.ImageUrl,
+		UserId:      uint64(cakeUpdate.UserID),
 	}, nil
 }

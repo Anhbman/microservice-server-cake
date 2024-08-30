@@ -28,3 +28,7 @@ func (s *ServiceServer) GetCakeById(ctx context.Context, req *service.GetCakeByI
 func (s *ServiceServer) SearchCake(ctx context.Context, req *service.SearchCakeRequest) (*service.SearchCakeResponse, error) {
 	return s.cakeProcessor.SearchCake(ctx, req)
 }
+
+func (s *ServiceServer) UpdateCake(ctx context.Context, req *service.Cake) (*service.Cake, error) {
+	return s.cakeProcessor.UpdateCake(ctx, req)
+}
