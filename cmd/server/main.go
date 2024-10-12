@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 
@@ -18,5 +19,10 @@ func main() {
 	cakeHandle := cake.NewProcessor(db)
 	handle := controller.NewServiceServer(cakeHandle)
 	server := service.NewServiceServer(handle, hooks.LoggingHooks(os.Stderr))
-	http.ListenAndServe(":8081", server)
+
+	log.Printf("Server is running on port %s", ":8081")
+	err := http.ListenAndServe(":8081", server)
+	if err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
 }
