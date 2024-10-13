@@ -1,1 +1,1 @@
-go run ./cmd/server/main.go
+dotenv .env go run ./cmd/server

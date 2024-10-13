@@ -14,7 +14,7 @@ import (
 
 var db *gorm.DB
 
-func InitDB() {
+func InitDB() *gorm.DB {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -39,6 +39,7 @@ func InitDB() {
 	fmt.Println("Successfully connected to database")
 
 	// db.AutoMigrate(&models.Cake{})
+	return db
 }
 
 func GetDB() *gorm.DB {
