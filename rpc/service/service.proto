@@ -4,6 +4,7 @@ package rpc.service;
 option go_package = "/rpc/service";
 
 import "rpc/service/cake.proto";
+import "rpc/service/user.proto";
 
 
 service Service {
@@ -11,4 +12,5 @@ service Service {
   rpc GetCakeById(GetCakeByIdRequest) returns (GetCakeByIdResponse);
   rpc SearchCake(SearchCakeRequest) returns (SearchCakeResponse);
   rpc UpdateCake(Cake) returns (Cake);
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
 }
