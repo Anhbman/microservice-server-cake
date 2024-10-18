@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Anhbman/microservice-server-cake/internal/models"
 	"github.com/Anhbman/microservice-server-cake/rpc/service"
@@ -20,6 +21,7 @@ func NewProcessor(db *gorm.DB) *Processor {
 
 func (p *Processor) Register(ctx context.Context, user *service.RegisterUserRequest) (*service.RegisterUserResponse, error) {
 	var u models.User
+	fmt.Println("12: ", user)
 	if user.GetName() == "" {
 		log.Errorf("Name is required")
 		return nil, twirp.InvalidArgumentError("Name is required", "Name")
@@ -43,6 +45,7 @@ func (p *Processor) Register(ctx context.Context, user *service.RegisterUserRequ
 	}
 	u.Password = hashedPassword
 	err = p.db.Create(&u).Error
+	fmt.Println("123: ", err)
 	if err != nil {
 		log.Errorf("Cannot create user: %s", err)
 		return nil, twirp.Internal.Errorf("Cannot create user: %w", err)

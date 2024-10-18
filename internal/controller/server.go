@@ -15,8 +15,8 @@ type ControllerServer struct {
 
 var _ service.Service = (*ControllerServer)(nil)
 
-func NewControllerServer(cakeProcessor *cake.Processor) *ControllerServer {
-	return &ControllerServer{cakeProcessor: cakeProcessor}
+func NewControllerServer(cakeProcessor *cake.Processor, userProcessor *user.Processor) *ControllerServer {
+	return &ControllerServer{cakeProcessor: cakeProcessor, userProcessor: userProcessor}
 }
 
 func (c *ControllerServer) CreateCake(ctx context.Context, req *service.CreateCakeRequest) (*service.Cake, error) {
