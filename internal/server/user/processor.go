@@ -57,8 +57,36 @@ func (p *Processor) Register(ctx context.Context, user *service.RegisterUserRequ
 	}
 
 	return &service.RegisterUserResponse{
-		Id:    uint64(u.ID),
-		Name:  u.Name,
-		Email: u.Email,
+		User: &service.User{
+			Id:    uint64(u.ID),
+			Name:  u.Name,
+			Email: u.Email,
+		},
+	}, nil
+}
+
+func (p *Processor) Login(ctx context.Context, user *service.LoginUserRequest) (*service.LoginUserResponse, error) {
+	if conditions := user.GetEmail() == "" || user.GetPassword() == ""; conditions {
+		log.Errorf("Email and password are required")
+		return nil, twirp.InvalidArgumentError("Email and password are required", "Email, Password")
+	}
+
+	var u models.User
+	err := p.db.Where("email = ?", user.Email).First(&u).Error
+	if err != nil {
+		log.Errorf("Cannot find user: %s", err)
+		return nil, twirp.InvalidArgumentError("Invalid email or password", "Email orPassword")
+	}
+	if !u.CheckPassword(user.Password) {
+		log.Errorf("Invalid password")
+		return nil, twirp.InvalidArgumentError("Invalid email or password", "Email orPassword")
+	}
+
+	return &service.LoginUserResponse{
+		User: &service.User{
+			Id:    uint64(u.ID),
+			Name:  u.Name,
+			Email: u.Email,
+		},
 	}, nil
 }

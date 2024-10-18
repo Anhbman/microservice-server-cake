@@ -9,8 +9,21 @@ message RegisterUserRequest {
   string password = 3;
 }
 
-message RegisterUserResponse {
+message User {
   uint64 id = 1;
   string name = 2;
   string email = 3;
+}
+
+message RegisterUserResponse {
+  User user = 1;
+}
+
+message LoginUserRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginUserResponse {
+  User user = 1;
 }

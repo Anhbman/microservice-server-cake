@@ -38,3 +38,7 @@ func (c *ControllerServer) UpdateCake(ctx context.Context, req *service.Cake) (*
 func (c *ControllerServer) RegisterUser(ctx context.Context, req *service.RegisterUserRequest) (*service.RegisterUserResponse, error) {
 	return c.userProcessor.Register(ctx, req)
 }
+
+func (c *ControllerServer) LoginUser(ctx context.Context, req *service.LoginUserRequest) (*service.LoginUserResponse, error) {
+	return c.userProcessor.Login(ctx, req)
+}
