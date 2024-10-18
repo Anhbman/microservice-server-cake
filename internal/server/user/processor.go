@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/Anhbman/microservice-server-cake/internal/models"
 	"github.com/Anhbman/microservice-server-cake/rpc/service"
@@ -47,6 +48,10 @@ func (p *Processor) Register(ctx context.Context, user *service.RegisterUserRequ
 	err = p.db.Create(&u).Error
 	fmt.Println("123: ", err)
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key value") {
+			log.Errorf("Email is already taken")
+			return nil, twirp.InvalidArgumentError("Email is already taken", "Email")
+		}
 		log.Errorf("Cannot create user: %s", err)
 		return nil, twirp.Internal.Errorf("Cannot create user: %w", err)
 	}
