@@ -9,6 +9,7 @@ package main
 import (
 	"github.com/Anhbman/microservice-server-cake/internal/controller"
 	"github.com/Anhbman/microservice-server-cake/internal/server/cake"
+	"github.com/Anhbman/microservice-server-cake/internal/server/user"
 	"github.com/Anhbman/microservice-server-cake/internal/storage"
 )
 
@@ -17,6 +18,7 @@ import (
 func InitializeApp() *controller.ControllerServer {
 	db := storage.InitDB()
 	processor := cake.NewProcessor(db)
-	controllerServer := controller.NewControllerServer(processor)
+	userProcessor := user.NewProcessor(db)
+	controllerServer := controller.NewControllerServer(processor, userProcessor)
 	return controllerServer
 }
