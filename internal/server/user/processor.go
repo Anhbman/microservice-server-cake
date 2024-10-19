@@ -90,3 +90,25 @@ func (p *Processor) Login(ctx context.Context, user *service.LoginUserRequest) (
 		},
 	}, nil
 }
+
+func (p *Processor) GetUserById(ctx context.Context, req *service.GetUserByIdRequest) (*service.GetUserByIdResponse, error) {
+	if req.GetId() == 0 {
+		log.Errorf("ID is required")
+		return nil, twirp.InvalidArgumentError("ID is required", "ID")
+	}
+
+	var u models.User
+	err := p.db.Where("id = ?", req.GetId()).First(&u).Error
+	if err != nil {
+		log.Errorf("Cannot find user: %s", err)
+		return nil, twirp.NotFoundError("User not found")
+	}
+
+	return &service.GetUserByIdResponse{
+		User: &service.User{
+			Id:    uint64(u.ID),
+			Name:  u.Name,
+			Email: u.Email,
+		},
+	}, nil
+}

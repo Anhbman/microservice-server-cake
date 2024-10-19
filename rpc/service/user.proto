@@ -27,3 +27,11 @@ message LoginUserRequest {
 message LoginUserResponse {
   User user = 1;
 }
+
+message GetUserByIdRequest {
+  uint64 id = 1;
+}
+
+message GetUserByIdResponse {
+  User user = 1;
+}

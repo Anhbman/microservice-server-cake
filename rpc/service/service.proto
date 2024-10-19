@@ -14,4 +14,5 @@ service Service {
   rpc UpdateCake(Cake) returns (Cake);
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
+  rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse);
 }

@@ -43,6 +43,8 @@ type Service interface {
 	RegisterUser(context.Context, *RegisterUserRequest) (*RegisterUserResponse, error)
 
 	LoginUser(context.Context, *LoginUserRequest) (*LoginUserResponse, error)
+
+	GetUserById(context.Context, *GetUserByIdRequest) (*GetUserByIdResponse, error)
 }
 
 // =======================
@@ -51,7 +53,7 @@ type Service interface {
 
 type serviceProtobufClient struct {
 	client      HTTPClient
-	urls        [6]string
+	urls        [7]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -79,13 +81,14 @@ func NewServiceProtobufClient(baseURL string, client HTTPClient, opts ...twirp.C
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "rpc.service", "Service")
-	urls := [6]string{
+	urls := [7]string{
 		serviceURL + "CreateCake",
 		serviceURL + "GetCakeById",
 		serviceURL + "SearchCake",
 		serviceURL + "UpdateCake",
 		serviceURL + "RegisterUser",
 		serviceURL + "LoginUser",
+		serviceURL + "GetUserById",
 	}
 
 	return &serviceProtobufClient{
@@ -372,13 +375,59 @@ func (c *serviceProtobufClient) callLoginUser(ctx context.Context, in *LoginUser
 	return out, nil
 }
 
+func (c *serviceProtobufClient) GetUserById(ctx context.Context, in *GetUserByIdRequest) (*GetUserByIdResponse, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "rpc.service")
+	ctx = ctxsetters.WithServiceName(ctx, "Service")
+	ctx = ctxsetters.WithMethodName(ctx, "GetUserById")
+	caller := c.callGetUserById
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *GetUserByIdRequest) (*GetUserByIdResponse, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetUserByIdRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetUserByIdRequest) when calling interceptor")
+					}
+					return c.callGetUserById(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*GetUserByIdResponse)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*GetUserByIdResponse) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *serviceProtobufClient) callGetUserById(ctx context.Context, in *GetUserByIdRequest) (*GetUserByIdResponse, error) {
+	out := new(GetUserByIdResponse)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[6], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
 // ===================
 // Service JSON Client
 // ===================
 
 type serviceJSONClient struct {
 	client      HTTPClient
-	urls        [6]string
+	urls        [7]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -406,13 +455,14 @@ func NewServiceJSONClient(baseURL string, client HTTPClient, opts ...twirp.Clien
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "rpc.service", "Service")
-	urls := [6]string{
+	urls := [7]string{
 		serviceURL + "CreateCake",
 		serviceURL + "GetCakeById",
 		serviceURL + "SearchCake",
 		serviceURL + "UpdateCake",
 		serviceURL + "RegisterUser",
 		serviceURL + "LoginUser",
+		serviceURL + "GetUserById",
 	}
 
 	return &serviceJSONClient{
@@ -699,6 +749,52 @@ func (c *serviceJSONClient) callLoginUser(ctx context.Context, in *LoginUserRequ
 	return out, nil
 }
 
+func (c *serviceJSONClient) GetUserById(ctx context.Context, in *GetUserByIdRequest) (*GetUserByIdResponse, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "rpc.service")
+	ctx = ctxsetters.WithServiceName(ctx, "Service")
+	ctx = ctxsetters.WithMethodName(ctx, "GetUserById")
+	caller := c.callGetUserById
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *GetUserByIdRequest) (*GetUserByIdResponse, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetUserByIdRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetUserByIdRequest) when calling interceptor")
+					}
+					return c.callGetUserById(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*GetUserByIdResponse)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*GetUserByIdResponse) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *serviceJSONClient) callGetUserById(ctx context.Context, in *GetUserByIdRequest) (*GetUserByIdResponse, error) {
+	out := new(GetUserByIdResponse)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[6], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
 // ======================
 // Service Server Handler
 // ======================
@@ -813,6 +909,9 @@ func (s *serviceServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	case "LoginUser":
 		s.serveLoginUser(ctx, resp, req)
+		return
+	case "GetUserById":
+		s.serveGetUserById(ctx, resp, req)
 		return
 	default:
 		msg := fmt.Sprintf("no handler for path %q", req.URL.Path)
@@ -1901,6 +2000,186 @@ func (s *serviceServer) serveLoginUserProtobuf(ctx context.Context, resp http.Re
 	callResponseSent(ctx, s.hooks)
 }
 
+func (s *serviceServer) serveGetUserById(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveGetUserByIdJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveGetUserByIdProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *serviceServer) serveGetUserByIdJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "GetUserById")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+	reqContent := new(GetUserByIdRequest)
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+
+	handler := s.Service.GetUserById
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *GetUserByIdRequest) (*GetUserByIdResponse, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetUserByIdRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetUserByIdRequest) when calling interceptor")
+					}
+					return s.Service.GetUserById(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*GetUserByIdResponse)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*GetUserByIdResponse) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *GetUserByIdResponse
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *GetUserByIdResponse and nil error while calling GetUserById. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *serviceServer) serveGetUserByIdProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "GetUserById")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := io.ReadAll(req.Body)
+	if err != nil {
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
+		return
+	}
+	reqContent := new(GetUserByIdRequest)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
+		return
+	}
+
+	handler := s.Service.GetUserById
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *GetUserByIdRequest) (*GetUserByIdResponse, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetUserByIdRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetUserByIdRequest) when calling interceptor")
+					}
+					return s.Service.GetUserById(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*GetUserByIdResponse)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*GetUserByIdResponse) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *GetUserByIdResponse
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *GetUserByIdResponse and nil error while calling GetUserById. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
 func (s *serviceServer) ServiceDescriptor() ([]byte, int) {
 	return twirpFileDescriptor0, 0
 }
@@ -2482,20 +2761,21 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 240 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x2c, 0x2a, 0x48, 0xd6,
-	0x2f, 0x4e, 0x2d, 0x2a, 0xcb, 0x4c, 0x4e, 0x85, 0xd1, 0x7a, 0x05, 0x45, 0xf9, 0x25, 0xf9, 0x42,
-	0xdc, 0x45, 0x05, 0xc9, 0x7a, 0x50, 0x21, 0x29, 0x31, 0x64, 0x75, 0xc9, 0x89, 0xd9, 0x50, 0x45,
-	0xa8, 0xe2, 0xa5, 0xc5, 0xa9, 0x45, 0x10, 0x71, 0xa3, 0x03, 0xcc, 0x5c, 0xec, 0xc1, 0x10, 0x61,
-	0x21, 0x7b, 0x2e, 0x2e, 0xe7, 0xa2, 0xd4, 0xc4, 0x92, 0x54, 0xe7, 0xc4, 0xec, 0x54, 0x21, 0x39,
-	0x3d, 0x24, 0x73, 0xf5, 0x10, 0x12, 0x41, 0xa9, 0x85, 0xa5, 0xa9, 0xc5, 0x25, 0x52, 0x82, 0xa8,
-	0xf2, 0x20, 0x2d, 0x01, 0x5c, 0xdc, 0xee, 0xa9, 0x25, 0x20, 0xa6, 0x53, 0xa5, 0x67, 0x8a, 0x90,
-	0x3c, 0x8a, 0x0a, 0x24, 0x19, 0x98, 0x11, 0x0a, 0xb8, 0x15, 0x14, 0x17, 0xe4, 0xe7, 0x15, 0xa7,
-	0x0a, 0xf9, 0x72, 0x71, 0x05, 0xa7, 0x26, 0x16, 0x25, 0x67, 0x60, 0x71, 0x12, 0x42, 0x02, 0x66,
-	0x9e, 0x3c, 0x4e, 0x79, 0xa8, 0x71, 0x46, 0x5c, 0x5c, 0xa1, 0x05, 0x29, 0x30, 0x1f, 0x62, 0xfa,
-	0x00, 0x9b, 0xa7, 0x82, 0xb9, 0x78, 0x82, 0x52, 0xd3, 0x33, 0x8b, 0x4b, 0x52, 0x8b, 0x42, 0x8b,
-	0x53, 0x8b, 0x84, 0x50, 0x1d, 0x8d, 0x2c, 0x05, 0x73, 0x86, 0x22, 0x1e, 0x15, 0x50, 0x87, 0x78,
-	0x71, 0x71, 0xfa, 0xe4, 0xa7, 0x67, 0xe6, 0x81, 0x4d, 0x94, 0x45, 0x51, 0x0f, 0x17, 0x87, 0x19,
-	0x27, 0x87, 0x4b, 0x1a, 0x62, 0x96, 0x13, 0x5f, 0x14, 0x8f, 0x3e, 0x52, 0xec, 0x26, 0xb1, 0x81,
-	0x63, 0xd6, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0xb5, 0x65, 0xc5, 0x7c, 0x33, 0x02, 0x00, 0x00,
+	// 256 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x92, 0xc1, 0x4a, 0xc4, 0x30,
+	0x10, 0x86, 0x2f, 0xa2, 0x38, 0xbb, 0x08, 0xe6, 0x20, 0xb8, 0xe0, 0xae, 0xbe, 0x40, 0x16, 0xd6,
+	0x07, 0x10, 0x76, 0x0f, 0xa2, 0x28, 0xc8, 0x96, 0xbd, 0x78, 0x8b, 0xe9, 0x50, 0x4b, 0xa1, 0x89,
+	0x93, 0x54, 0xf0, 0x35, 0x7c, 0x62, 0x69, 0x93, 0xd8, 0x04, 0x1b, 0x4f, 0x2d, 0xff, 0xff, 0xe7,
+	0xe3, 0x9f, 0x61, 0xe0, 0x92, 0xb4, 0x5c, 0x1b, 0xa4, 0xcf, 0x5a, 0x62, 0xf8, 0x72, 0x4d, 0xca,
+	0x2a, 0x36, 0x23, 0x2d, 0xb9, 0x97, 0x16, 0x17, 0x71, 0x4e, 0x8a, 0xc6, 0x87, 0x52, 0xbd, 0x33,
+	0x48, 0x4e, 0xdf, 0x7c, 0x1f, 0xc1, 0x49, 0xe1, 0x64, 0x76, 0x07, 0xb0, 0x23, 0x14, 0x16, 0x77,
+	0xa2, 0x41, 0xb6, 0xe4, 0x11, 0x97, 0x8f, 0xc6, 0x1e, 0x3f, 0x3a, 0x34, 0x76, 0x71, 0x9e, 0xfa,
+	0xfd, 0x93, 0x17, 0x98, 0xdd, 0xa3, 0xed, 0x7f, 0xb7, 0x5f, 0x0f, 0x25, 0x5b, 0x25, 0x89, 0xc8,
+	0x09, 0x88, 0xeb, 0x7c, 0xc0, 0x68, 0xd5, 0x1a, 0x64, 0xcf, 0x00, 0x05, 0x0a, 0x92, 0xef, 0x13,
+	0x95, 0x46, 0x23, 0xf0, 0x56, 0x59, 0xdf, 0xe3, 0x36, 0x00, 0x07, 0x5d, 0x86, 0x09, 0xff, 0x4e,
+	0x30, 0x35, 0x54, 0x01, 0xf3, 0x3d, 0x56, 0xb5, 0xb1, 0x48, 0x07, 0x83, 0xc4, 0xd2, 0xd2, 0xb1,
+	0x15, 0x6a, 0xdc, 0xfc, 0x93, 0xf0, 0x45, 0x1e, 0xe1, 0xf4, 0x49, 0x55, 0x75, 0x3b, 0x10, 0xaf,
+	0x92, 0xfc, 0xaf, 0x1e, 0x70, 0xcb, 0x9c, 0xed, 0x59, 0x6e, 0xeb, 0xbd, 0x34, 0xbd, 0xf5, 0xe0,
+	0x64, 0xb7, 0x3e, 0x06, 0x1c, 0x71, 0x7b, 0xf6, 0x3a, 0x5f, 0x47, 0xf7, 0xf2, 0x76, 0x3c, 0xdc,
+	0xca, 0xed, 0x4f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xa9, 0xa9, 0x60, 0x01, 0x85, 0x02, 0x00, 0x00,
 }

@@ -42,3 +42,7 @@ func (c *ControllerServer) RegisterUser(ctx context.Context, req *service.Regist
 func (c *ControllerServer) LoginUser(ctx context.Context, req *service.LoginUserRequest) (*service.LoginUserResponse, error) {
 	return c.userProcessor.Login(ctx, req)
 }
+
+func (c *ControllerServer) GetUserById(ctx context.Context, req *service.GetUserByIdRequest) (*service.GetUserByIdResponse, error) {
+	return c.userProcessor.GetUserById(ctx, req)
+}
