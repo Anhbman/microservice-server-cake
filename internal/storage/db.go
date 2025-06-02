@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/Anhbman/microservice-server-cake/internal/models"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
@@ -26,7 +27,6 @@ func InitDB() *gorm.DB {
 	dbPass := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
 
-	// db, err = sql.Open("postgres", fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", dbHost, dbUser, dbPass, dbName, dbPort))
 	sqlConnect := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", dbHost, dbUser, dbPass, dbName, dbPort)
 	db, err = gorm.Open(postgres.Open(sqlConnect), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
@@ -38,7 +38,10 @@ func InitDB() *gorm.DB {
 
 	fmt.Println("Successfully connected to database")
 
-	// db.AutoMigrate(&models.Cake{})
+	err = db.AutoMigrate(&models.Cake{}, &models.User{})
+	if err != nil {
+		log.Fatalf("Error migrating database: %v", err)
+	}
 	return db
 }
 
