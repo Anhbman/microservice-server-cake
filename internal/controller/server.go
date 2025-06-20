@@ -3,8 +3,8 @@ package controller
 import (
 	"context"
 
-	"github.com/Anhbman/microservice-server-cake/internal/server/cake"
-	"github.com/Anhbman/microservice-server-cake/internal/server/user"
+	"github.com/Anhbman/microservice-server-cake/internal/service/cake"
+	"github.com/Anhbman/microservice-server-cake/internal/service/user"
 	"github.com/Anhbman/microservice-server-cake/rpc/service"
 )
 
