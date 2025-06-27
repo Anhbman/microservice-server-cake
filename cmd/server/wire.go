@@ -11,7 +11,7 @@ import (
 	"github.com/google/wire"
 )
 
-func InitializeApp() *controller.ControllerServer {
-	wire.Build(storage.InitDB, cake.NewProcessor, user.NewProcessor, controller.NewControllerServer)
-	return &controller.ControllerServer{}
+func InitializeApp() *controller.Controller {
+	wire.Build(storage.InitDB, cake.NewService, user.NewService, controller.NewController)
+	return &controller.Controller{}
 }

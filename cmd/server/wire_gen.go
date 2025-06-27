@@ -15,10 +15,10 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeApp() *controller.ControllerServer {
+func InitializeApp() *controller.Controller {
 	db := storage.InitDB()
-	processor := cake.NewProcessor(db)
-	userProcessor := user.NewProcessor(db)
-	controllerServer := controller.NewControllerServer(processor, userProcessor)
-	return controllerServer
+	service := cake.NewService(db)
+	userService := user.NewService(db)
+	controllerController := controller.NewController(service, userService)
+	return controllerController
 }

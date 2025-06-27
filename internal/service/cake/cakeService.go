@@ -1,7 +1,6 @@
 package cake
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -13,15 +12,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type Processor struct {
+type Service struct {
 	db *gorm.DB
 }
 
-func NewProcessor(db *gorm.DB) *Processor {
-	return &Processor{db: db}
+func NewService(db *gorm.DB) *Service {
+	return &Service{db: db}
 }
 
-func (p *Processor) Create(ctx context.Context, cake *pb.CreateCakeRequest) (*pb.Cake, error) {
+func (p *Service) Create(cake *pb.CreateCakeRequest) (*pb.Cake, error) {
 	var cakeInsert = models.Cake{
 		Name:        cake.Name,
 		Price:       cake.Price,
@@ -43,7 +42,7 @@ func (p *Processor) Create(ctx context.Context, cake *pb.CreateCakeRequest) (*pb
 	}, nil
 }
 
-func (p *Processor) GetCakeById(ctx context.Context, id *pb.GetCakeByIdRequest) (*pb.GetCakeByIdResponse, error) {
+func (p *Service) GetCakeById(id *pb.GetCakeByIdRequest) (*pb.GetCakeByIdResponse, error) {
 	var cake models.Cake
 	err := p.db.First(&cake, id.Id).Error
 	if err != nil {
@@ -60,7 +59,7 @@ func (p *Processor) GetCakeById(ctx context.Context, id *pb.GetCakeByIdRequest) 
 	}, nil
 }
 
-func (p *Processor) SearchCake(ctx context.Context, search *pb.SearchCakeRequest) (*pb.SearchCakeResponse, error) {
+func (p *Service) SearchCake(search *pb.SearchCakeRequest) (*pb.SearchCakeResponse, error) {
 
 	conditions := make(map[string]interface{})
 
@@ -101,7 +100,7 @@ func (p *Processor) SearchCake(ctx context.Context, search *pb.SearchCakeRequest
 	}, nil
 }
 
-func (p *Processor) UpdateCake(ctx context.Context, cake *pb.Cake) (*pb.Cake, error) {
+func (p *Service) UpdateCake(cake *pb.Cake) (*pb.Cake, error) {
 	cakeUpdate := models.Cake{}
 	err := p.db.First(&cakeUpdate, cake.Id).Error
 	if err != nil {
