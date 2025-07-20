@@ -8,6 +8,7 @@ package main
 
 import (
 	"github.com/Anhbman/microservice-server-cake/internal/controller"
+	"github.com/Anhbman/microservice-server-cake/internal/eventHandler"
 	"github.com/Anhbman/microservice-server-cake/internal/service/cake"
 	"github.com/Anhbman/microservice-server-cake/internal/service/user"
 	"github.com/Anhbman/microservice-server-cake/internal/storage"
@@ -21,4 +22,12 @@ func InitializeApp() *controller.Controller {
 	userService := user.NewService(db)
 	controllerController := controller.NewController(service, userService)
 	return controllerController
+}
+
+func InitializeEventHandler() *eventHandler.EventHandler {
+	db := storage.InitDB()
+	service := cake.NewService(db)
+	userService := user.NewService(db)
+	eventHandlerEventHandler := eventHandler.NewEventHandler(service, userService)
+	return eventHandlerEventHandler
 }

@@ -12,12 +12,6 @@ import (
 )
 
 func main() {
-	// connect to database
-	// storage.InitDB()
-	// db := storage.GetDB()
-	// cakeHandle := cake.NewProcessor(db)
-	// handle := controller.NewControllerServer(cakeHandle)
-
 	cfg, err := config.SetupEnv()
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
@@ -41,7 +35,9 @@ func main() {
 
 	server := service.NewServiceServer(handle, hooks.LoggingHooks(os.Stderr))
 
-	consumer, err := rabbitmq.NewConsumer(conn)
+	eventHandler := InitializeEventHandler()
+
+	consumer, err := rabbitmq.NewConsumer(conn, eventHandler)
 	if err != nil {
 		log.Fatalf("Failed to create RabbitMQ consumer: %v", err)
 	}
