@@ -37,40 +37,65 @@ func NewConsumer(conn *amqp.Connection, eventHandler *eventHandler.EventHandler)
 		return nil, fmt.Errorf("failed to open channel: %w", err)
 	}
 
-	err = ch.ExchangeDeclare(
-		ClientEventsExchange, // exchange name
-		TopicExchange,        // exchange type
-		true,                 // durable
-		false,                // auto-deleted
-		false,                // internal
-		false,                // no-wait
-		nil,                  // arguments
-	)
+	// Declare the main exchange where events are originally published.
+	err = ch.ExchangeDeclare(ClientEventsExchange, TopicExchange, true, false, false, false, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to declare exchange: %w", err)
+		return nil, fmt.Errorf("failed to declare main exchange: %w", err)
 	}
 
-	queue, err := ch.QueueDeclare(
-		UserRegisteredQueue, // queue name
-		true,                // durable
-		false,               // delete when unused
-		false,               // exclusive
-		false,               // no-wait
-		nil,                 // arguments
-	)
+	// Declare the retry exchange.
+	err = ch.ExchangeDeclare(RetryExchange, TopicExchange, true, false, false, false, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to declare queue: %w", err)
+		return nil, fmt.Errorf("failed to declare retry exchange: %w", err)
 	}
 
-	err = ch.QueueBind(
-		queue.Name,           // queue name
-		UserEventsRoutingKey, // routing key
-		ClientEventsExchange, // exchange
-		false,
-		nil,
-	)
+	// Declare the dead-letter exchange for messages that fail all retries.
+	err = ch.ExchangeDeclare(DeadLetterExchange, TopicExchange, true, false, false, false, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to bind queue: %w", err)
+		return nil, fmt.Errorf("failed to declare dead-letter exchange: %w", err)
+	}
+
+	// Declare the main queue. Messages that fail processing will be sent to the RetryExchange.
+	mainQueueArgs := amqp.Table{
+		"x-dead-letter-exchange": RetryExchange,
+	}
+	mainQueue, err := ch.QueueDeclare(UserRegisteredQueue, true, false, false, false, mainQueueArgs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to declare main queue: %w", err)
+	}
+
+	// Bind the main queue to the main exchange.
+	err = ch.QueueBind(mainQueue.Name, UserEventsRoutingKey, ClientEventsExchange, false, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to bind main queue: %w", err)
+	}
+
+	// Declare the retry queue. It has a TTL and will send expired messages back to the main exchange.
+	retryQueueArgs := amqp.Table{
+		"x-dead-letter-exchange":    ClientEventsExchange,
+		"x-message-ttl":             RetryDelay,
+	}
+	retryQueue, err := ch.QueueDeclare(UserRegisteredRetryQueue, true, false, false, false, retryQueueArgs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to declare retry queue: %w", err)
+	}
+
+	// Bind the retry queue to the retry exchange.
+	err = ch.QueueBind(retryQueue.Name, "#", RetryExchange, false, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to bind retry queue: %w", err)
+	}
+
+	// Declare the final dead-letter queue for messages that have exhausted all retries.
+	deadLetterQueue, err := ch.QueueDeclare(UserRegisteredDeadLetterQueue, true, false, false, false, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to declare dead-letter queue: %w", err)
+	}
+
+	// Bind the dead-letter queue to the dead-letter exchange.
+	err = ch.QueueBind(deadLetterQueue.Name, "#", DeadLetterExchange, false, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to bind dead-letter queue: %w", err)
 	}
 
 	return &Consumer{
@@ -97,10 +122,9 @@ func (c *Consumer) StartConsuming() error {
 	go func() {
 		for msg := range msgs {
 			if err := c.processMessage(msg); err != nil {
-				log.Printf("Error processing message: %v", err)
-				msg.Nack(false, true) // Reject and requeue
+				c.handleFailure(msg, err)
 			} else {
-				msg.Ack(false) // Acknowledge
+				msg.Ack(false) // Acknowledge successful processing
 			}
 		}
 	}()
@@ -109,16 +133,52 @@ func (c *Consumer) StartConsuming() error {
 }
 
 func (c *Consumer) processMessage(msg amqp.Delivery) error {
-	// Parse event
-	var event Event
-	if err := json.Unmarshal(msg.Body, &event); err != nil {
-		return fmt.Errorf("failed to unmarshal event: %w", err)
+	// The actual business logic is in handleMessage.
+	// This function just orchestrates the call and error handling.
+	return c.handleMessage(context.Background(), msg)
+}
+
+func (c *Consumer) handleFailure(msg amqp.Delivery, err error) {
+	log.Printf("Error processing message: %v", err)
+
+	retryCount, _ := msg.Headers[HeaderRetryCount].(int32)
+
+	if retryCount >= MaxRetries {
+		log.Printf("Max retries reached for message. Sending to dead-letter exchange. Message ID: %s", msg.MessageId)
+		// Publish to the final dead-letter exchange, preserving the original routing key
+		err := c.ch.Publish(DeadLetterExchange, msg.RoutingKey, false, false, amqp.Publishing{
+			ContentType: msg.ContentType,
+			Body:        msg.Body,
+		})
+		if err != nil {
+			log.Printf("Failed to publish to dead-letter exchange: %v", err)
+		}
+		msg.Ack(false) // Acknowledge the original message to remove it from the queue
+		return
 	}
 
-	if err := c.handleMessage(context.Background(), msg); err != nil {
-		log.Printf("Error processing message: %v", err)
+	// Increment retry count and publish to the retry exchange, preserving the original routing key
+	log.Printf("Retrying message. Count: %d. Message ID: %s", retryCount+1, msg.MessageId)
+	retryCount++
+	headers := amqp.Table{
+		HeaderRetryCount: retryCount,
 	}
-	return nil
+
+	err = c.ch.Publish(RetryExchange, msg.RoutingKey, false, false, amqp.Publishing{
+		ContentType: msg.ContentType,
+		Body:        msg.Body,
+		Headers:     headers,
+	})
+
+	if err != nil {
+		log.Printf("Failed to publish to retry exchange: %v", err)
+		// If we can't even publish to the retry exchange, we should probably Nack to keep it in the main queue for a bit.
+		// This is a fallback and might need more sophisticated handling.
+		msg.Nack(false, true)
+		return
+	}
+
+	msg.Ack(false) // Acknowledge the original message to remove it from the main queue
 }
 
 func (c *Consumer) handleMessage(ctx context.Context, msg amqp.Delivery) error {

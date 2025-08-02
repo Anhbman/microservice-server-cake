@@ -19,7 +19,6 @@ This is a microservice-based server application for managing cakes and users, bu
 - **Language:** Go
 - **Frameworks/Libraries:**
     - [Twirp](https://github.com/twitchtv/twirp): A framework for simple RPC from Twitch.
-    - [gRPC](https://grpc.io/): A high-performance, open-source universal RPC framework.
     - [Protocol Buffers](https://developers.google.com/protocol-buffers): A language-neutral, platform-neutral, extensible mechanism for serializing structured data.
     - [GORM](https://gorm.io/): The fantastic ORM library for Go.
     - [PostgreSQL](https://www.postgresql.org/): A powerful, open-source object-relational database system.
