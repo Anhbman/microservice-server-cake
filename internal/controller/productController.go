@@ -28,7 +28,7 @@ func (c *Controller) CreateProduct(ctx context.Context, req *service.CreateProdu
 	resp, err := c.productService.Create(product)
 	if err != nil {
 		log.Errorf("Failed to create product: %v", err)
-		return nil, twirp.InternalError("Failed to create product")
+		return nil, err
 	}
 
 	return &service.Product{
