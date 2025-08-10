@@ -10,7 +10,6 @@ import (
 	"github.com/Anhbman/microservice-server-cake/internal/controller"
 	"github.com/Anhbman/microservice-server-cake/internal/eventHandler"
 	"github.com/Anhbman/microservice-server-cake/internal/service/cake"
-	"github.com/Anhbman/microservice-server-cake/internal/service/product"
 	"github.com/Anhbman/microservice-server-cake/internal/service/user"
 	"github.com/Anhbman/microservice-server-cake/internal/storage"
 )
@@ -21,8 +20,7 @@ func InitializeApp() *controller.Controller {
 	db := storage.InitDB()
 	service := cake.NewService(db)
 	userService := user.NewService(db)
-	productService := product.NewService(db)
-	controllerController := controller.NewController(service, userService, productService)
+	controllerController := controller.NewController(service, userService)
 	return controllerController
 }
 

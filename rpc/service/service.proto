@@ -5,7 +5,6 @@ option go_package = "/rpc/service";
 
 import "rpc/service/cake.proto";
 import "rpc/service/user.proto";
-import "rpc/service/product.proto";
 
 
 service Service {
@@ -16,7 +15,4 @@ service Service {
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
   rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse);
-  rpc CreateProduct(CreateProductRequest) returns (Product);
-  rpc GetAllProducts(GetAllProductsRequest) returns (GetAllProductsResponse);
-  rpc GetProductById(GetProductByIdRequest) returns (Product);
 }
