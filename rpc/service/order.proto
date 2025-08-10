@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package rpc.service;
+option go_package = "/rpc/service";
+
+message CreateOrderRequest {
+  uint64 user_id = 1;
+  repeated OrderItem items = 2;
+}
+
+message OrderItem {
+  uint64 id = 1;
+  uint64 cake_id = 2;
+  int64 quantity = 3;
+  int64 price = 4;
+}
+
+message Order {
+  uint64 id = 1;
+  uint64 user_id = 2;
+  repeated OrderItem items = 3;
+}
+
+message GetOrderByIdRequest {
+  uint64 id = 1;
+}

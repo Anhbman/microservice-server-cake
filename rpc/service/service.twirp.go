@@ -45,6 +45,10 @@ type Service interface {
 	LoginUser(context.Context, *LoginUserRequest) (*LoginUserResponse, error)
 
 	GetUserById(context.Context, *GetUserByIdRequest) (*GetUserByIdResponse, error)
+
+	CreateOrder(context.Context, *CreateOrderRequest) (*Order, error)
+
+	GetOrderById(context.Context, *GetOrderByIdRequest) (*Order, error)
 }
 
 // =======================
@@ -53,7 +57,7 @@ type Service interface {
 
 type serviceProtobufClient struct {
 	client      HTTPClient
-	urls        [7]string
+	urls        [9]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -81,7 +85,7 @@ func NewServiceProtobufClient(baseURL string, client HTTPClient, opts ...twirp.C
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "rpc.service", "Service")
-	urls := [7]string{
+	urls := [9]string{
 		serviceURL + "CreateCake",
 		serviceURL + "GetCakeById",
 		serviceURL + "SearchCake",
@@ -89,6 +93,8 @@ func NewServiceProtobufClient(baseURL string, client HTTPClient, opts ...twirp.C
 		serviceURL + "RegisterUser",
 		serviceURL + "LoginUser",
 		serviceURL + "GetUserById",
+		serviceURL + "CreateOrder",
+		serviceURL + "GetOrderById",
 	}
 
 	return &serviceProtobufClient{
@@ -421,13 +427,105 @@ func (c *serviceProtobufClient) callGetUserById(ctx context.Context, in *GetUser
 	return out, nil
 }
 
+func (c *serviceProtobufClient) CreateOrder(ctx context.Context, in *CreateOrderRequest) (*Order, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "rpc.service")
+	ctx = ctxsetters.WithServiceName(ctx, "Service")
+	ctx = ctxsetters.WithMethodName(ctx, "CreateOrder")
+	caller := c.callCreateOrder
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *CreateOrderRequest) (*Order, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*CreateOrderRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*CreateOrderRequest) when calling interceptor")
+					}
+					return c.callCreateOrder(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Order)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Order) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *serviceProtobufClient) callCreateOrder(ctx context.Context, in *CreateOrderRequest) (*Order, error) {
+	out := new(Order)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[7], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
+func (c *serviceProtobufClient) GetOrderById(ctx context.Context, in *GetOrderByIdRequest) (*Order, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "rpc.service")
+	ctx = ctxsetters.WithServiceName(ctx, "Service")
+	ctx = ctxsetters.WithMethodName(ctx, "GetOrderById")
+	caller := c.callGetOrderById
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *GetOrderByIdRequest) (*Order, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetOrderByIdRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetOrderByIdRequest) when calling interceptor")
+					}
+					return c.callGetOrderById(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Order)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Order) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *serviceProtobufClient) callGetOrderById(ctx context.Context, in *GetOrderByIdRequest) (*Order, error) {
+	out := new(Order)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[8], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
 // ===================
 // Service JSON Client
 // ===================
 
 type serviceJSONClient struct {
 	client      HTTPClient
-	urls        [7]string
+	urls        [9]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -455,7 +553,7 @@ func NewServiceJSONClient(baseURL string, client HTTPClient, opts ...twirp.Clien
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "rpc.service", "Service")
-	urls := [7]string{
+	urls := [9]string{
 		serviceURL + "CreateCake",
 		serviceURL + "GetCakeById",
 		serviceURL + "SearchCake",
@@ -463,6 +561,8 @@ func NewServiceJSONClient(baseURL string, client HTTPClient, opts ...twirp.Clien
 		serviceURL + "RegisterUser",
 		serviceURL + "LoginUser",
 		serviceURL + "GetUserById",
+		serviceURL + "CreateOrder",
+		serviceURL + "GetOrderById",
 	}
 
 	return &serviceJSONClient{
@@ -795,6 +895,98 @@ func (c *serviceJSONClient) callGetUserById(ctx context.Context, in *GetUserById
 	return out, nil
 }
 
+func (c *serviceJSONClient) CreateOrder(ctx context.Context, in *CreateOrderRequest) (*Order, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "rpc.service")
+	ctx = ctxsetters.WithServiceName(ctx, "Service")
+	ctx = ctxsetters.WithMethodName(ctx, "CreateOrder")
+	caller := c.callCreateOrder
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *CreateOrderRequest) (*Order, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*CreateOrderRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*CreateOrderRequest) when calling interceptor")
+					}
+					return c.callCreateOrder(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Order)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Order) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *serviceJSONClient) callCreateOrder(ctx context.Context, in *CreateOrderRequest) (*Order, error) {
+	out := new(Order)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[7], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
+func (c *serviceJSONClient) GetOrderById(ctx context.Context, in *GetOrderByIdRequest) (*Order, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "rpc.service")
+	ctx = ctxsetters.WithServiceName(ctx, "Service")
+	ctx = ctxsetters.WithMethodName(ctx, "GetOrderById")
+	caller := c.callGetOrderById
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *GetOrderByIdRequest) (*Order, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetOrderByIdRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetOrderByIdRequest) when calling interceptor")
+					}
+					return c.callGetOrderById(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Order)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Order) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *serviceJSONClient) callGetOrderById(ctx context.Context, in *GetOrderByIdRequest) (*Order, error) {
+	out := new(Order)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[8], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
 // ======================
 // Service Server Handler
 // ======================
@@ -912,6 +1104,12 @@ func (s *serviceServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	case "GetUserById":
 		s.serveGetUserById(ctx, resp, req)
+		return
+	case "CreateOrder":
+		s.serveCreateOrder(ctx, resp, req)
+		return
+	case "GetOrderById":
+		s.serveGetOrderById(ctx, resp, req)
 		return
 	default:
 		msg := fmt.Sprintf("no handler for path %q", req.URL.Path)
@@ -2180,6 +2378,366 @@ func (s *serviceServer) serveGetUserByIdProtobuf(ctx context.Context, resp http.
 	callResponseSent(ctx, s.hooks)
 }
 
+func (s *serviceServer) serveCreateOrder(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveCreateOrderJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveCreateOrderProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *serviceServer) serveCreateOrderJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "CreateOrder")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+	reqContent := new(CreateOrderRequest)
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+
+	handler := s.Service.CreateOrder
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *CreateOrderRequest) (*Order, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*CreateOrderRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*CreateOrderRequest) when calling interceptor")
+					}
+					return s.Service.CreateOrder(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Order)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Order) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *Order
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Order and nil error while calling CreateOrder. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *serviceServer) serveCreateOrderProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "CreateOrder")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := io.ReadAll(req.Body)
+	if err != nil {
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
+		return
+	}
+	reqContent := new(CreateOrderRequest)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
+		return
+	}
+
+	handler := s.Service.CreateOrder
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *CreateOrderRequest) (*Order, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*CreateOrderRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*CreateOrderRequest) when calling interceptor")
+					}
+					return s.Service.CreateOrder(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Order)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Order) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *Order
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Order and nil error while calling CreateOrder. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *serviceServer) serveGetOrderById(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveGetOrderByIdJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveGetOrderByIdProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *serviceServer) serveGetOrderByIdJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "GetOrderById")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+	reqContent := new(GetOrderByIdRequest)
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+
+	handler := s.Service.GetOrderById
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *GetOrderByIdRequest) (*Order, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetOrderByIdRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetOrderByIdRequest) when calling interceptor")
+					}
+					return s.Service.GetOrderById(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Order)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Order) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *Order
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Order and nil error while calling GetOrderById. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *serviceServer) serveGetOrderByIdProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "GetOrderById")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := io.ReadAll(req.Body)
+	if err != nil {
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
+		return
+	}
+	reqContent := new(GetOrderByIdRequest)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
+		return
+	}
+
+	handler := s.Service.GetOrderById
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *GetOrderByIdRequest) (*Order, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetOrderByIdRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetOrderByIdRequest) when calling interceptor")
+					}
+					return s.Service.GetOrderById(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Order)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Order) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *Order
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Order and nil error while calling GetOrderById. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
 func (s *serviceServer) ServiceDescriptor() ([]byte, int) {
 	return twirpFileDescriptor0, 0
 }
@@ -2761,21 +3319,24 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 256 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x92, 0xc1, 0x4a, 0xc4, 0x30,
-	0x10, 0x86, 0x2f, 0xa2, 0x38, 0xbb, 0x08, 0xe6, 0x20, 0xb8, 0xe0, 0xae, 0xbe, 0x40, 0x16, 0xd6,
-	0x07, 0x10, 0x76, 0x0f, 0xa2, 0x28, 0xc8, 0x96, 0xbd, 0x78, 0x8b, 0xe9, 0x50, 0x4b, 0xa1, 0x89,
-	0x93, 0x54, 0xf0, 0x35, 0x7c, 0x62, 0x69, 0x93, 0xd8, 0x04, 0x1b, 0x4f, 0x2d, 0xff, 0xff, 0xe7,
-	0xe3, 0x9f, 0x61, 0xe0, 0x92, 0xb4, 0x5c, 0x1b, 0xa4, 0xcf, 0x5a, 0x62, 0xf8, 0x72, 0x4d, 0xca,
-	0x2a, 0x36, 0x23, 0x2d, 0xb9, 0x97, 0x16, 0x17, 0x71, 0x4e, 0x8a, 0xc6, 0x87, 0x52, 0xbd, 0x33,
-	0x48, 0x4e, 0xdf, 0x7c, 0x1f, 0xc1, 0x49, 0xe1, 0x64, 0x76, 0x07, 0xb0, 0x23, 0x14, 0x16, 0x77,
-	0xa2, 0x41, 0xb6, 0xe4, 0x11, 0x97, 0x8f, 0xc6, 0x1e, 0x3f, 0x3a, 0x34, 0x76, 0x71, 0x9e, 0xfa,
-	0xfd, 0x93, 0x17, 0x98, 0xdd, 0xa3, 0xed, 0x7f, 0xb7, 0x5f, 0x0f, 0x25, 0x5b, 0x25, 0x89, 0xc8,
-	0x09, 0x88, 0xeb, 0x7c, 0xc0, 0x68, 0xd5, 0x1a, 0x64, 0xcf, 0x00, 0x05, 0x0a, 0x92, 0xef, 0x13,
-	0x95, 0x46, 0x23, 0xf0, 0x56, 0x59, 0xdf, 0xe3, 0x36, 0x00, 0x07, 0x5d, 0x86, 0x09, 0xff, 0x4e,
-	0x30, 0x35, 0x54, 0x01, 0xf3, 0x3d, 0x56, 0xb5, 0xb1, 0x48, 0x07, 0x83, 0xc4, 0xd2, 0xd2, 0xb1,
-	0x15, 0x6a, 0xdc, 0xfc, 0x93, 0xf0, 0x45, 0x1e, 0xe1, 0xf4, 0x49, 0x55, 0x75, 0x3b, 0x10, 0xaf,
-	0x92, 0xfc, 0xaf, 0x1e, 0x70, 0xcb, 0x9c, 0xed, 0x59, 0x6e, 0xeb, 0xbd, 0x34, 0xbd, 0xf5, 0xe0,
-	0x64, 0xb7, 0x3e, 0x06, 0x1c, 0x71, 0x7b, 0xf6, 0x3a, 0x5f, 0x47, 0xf7, 0xf2, 0x76, 0x3c, 0xdc,
-	0xca, 0xed, 0x4f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xa9, 0xa9, 0x60, 0x01, 0x85, 0x02, 0x00, 0x00,
+	// 293 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x92, 0xc1, 0x4a, 0xc3, 0x40,
+	0x10, 0x86, 0x4f, 0x2a, 0x4e, 0x82, 0xe0, 0x1e, 0x14, 0x0b, 0xb6, 0xfa, 0x02, 0x29, 0xd4, 0x07,
+	0x10, 0x52, 0xa1, 0x28, 0x8a, 0xd2, 0xd0, 0x8b, 0xb7, 0xb8, 0x19, 0x6a, 0x28, 0x74, 0xd7, 0xd9,
+	0xad, 0xe0, 0xbb, 0xf8, 0xb0, 0x92, 0x64, 0xa7, 0xd9, 0xb5, 0x49, 0x4e, 0x59, 0xfe, 0xef, 0xdf,
+	0x7f, 0x67, 0x26, 0x03, 0x57, 0xa4, 0xe5, 0xd4, 0x20, 0x7d, 0x97, 0x12, 0xf9, 0x9b, 0x68, 0x52,
+	0x56, 0x89, 0x88, 0xb4, 0x4c, 0x9c, 0x34, 0xba, 0xf0, 0x7d, 0x32, 0xdf, 0x38, 0x53, 0xa8, 0xef,
+	0x0c, 0x92, 0xd3, 0x2f, 0x7d, 0x5d, 0x51, 0xc1, 0x60, 0xf6, 0x7b, 0x04, 0x27, 0x59, 0xa3, 0x8b,
+	0x7b, 0x80, 0x39, 0x61, 0x6e, 0x71, 0x9e, 0x6f, 0x50, 0x8c, 0x13, 0xef, 0xc1, 0xa4, 0x05, 0x4b,
+	0xfc, 0xda, 0xa1, 0xb1, 0xa3, 0xf3, 0x90, 0x57, 0x57, 0xde, 0x20, 0x5a, 0xa0, 0xad, 0x8e, 0xe9,
+	0xcf, 0x63, 0x21, 0x26, 0x81, 0xc3, 0x23, 0x1c, 0x71, 0xd3, 0x6f, 0x30, 0x5a, 0x6d, 0x0d, 0x8a,
+	0x17, 0x80, 0x0c, 0x73, 0x92, 0x9f, 0x1d, 0x25, 0xb5, 0x80, 0xf3, 0x26, 0xbd, 0xdc, 0xc5, 0xcd,
+	0x00, 0x56, 0xba, 0xe0, 0x0e, 0x0f, 0x3b, 0xe8, 0x6a, 0x2a, 0x83, 0x78, 0x89, 0xeb, 0xd2, 0x58,
+	0xa4, 0x95, 0x41, 0x12, 0x61, 0xd1, 0x3e, 0xe2, 0x32, 0x6e, 0x07, 0x1c, 0xae, 0x90, 0x27, 0x38,
+	0x7d, 0x56, 0xeb, 0x72, 0x5b, 0x27, 0x5e, 0x07, 0xfe, 0xbd, 0xce, 0x71, 0xe3, 0x3e, 0xec, 0xb2,
+	0x9a, 0xa9, 0x57, 0x52, 0xf7, 0xd4, 0x99, 0xf4, 0x4e, 0xbd, 0x35, 0xb8, 0xc4, 0x14, 0xa2, 0xe6,
+	0x7f, 0xbf, 0x56, 0x9b, 0xf2, 0x2f, 0xd1, 0x23, 0x9c, 0x28, 0x02, 0x43, 0x73, 0xe9, 0x01, 0xe2,
+	0x05, 0xda, 0xfa, 0x5c, 0x97, 0x75, 0xf0, 0xea, 0x1e, 0x0d, 0xa4, 0xa4, 0x67, 0xef, 0xf1, 0xd4,
+	0x5b, 0xdd, 0x8f, 0xe3, 0x7a, 0x6b, 0xef, 0xfe, 0x02, 0x00, 0x00, 0xff, 0xff, 0x75, 0x04, 0x2a,
+	0x13, 0x28, 0x03, 0x00, 0x00,
 }
