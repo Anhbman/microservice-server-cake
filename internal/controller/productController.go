@@ -67,14 +67,14 @@ func (c *Controller) GetAllProducts(ctx context.Context, req *service.GetAllProd
 	}
 
 	productResponses := make([]*service.Product, len(products))
-	for _, product := range products {
-		productResponses = append(productResponses, &service.Product{
+	for i, product := range products {
+		productResponses[i] = &service.Product{
 			Id:          int64(product.ID),
 			Name:        product.Name,
 			Price:       product.Price,
 			Description: product.Description,
 			ImageUrl:    product.ImageURL,
-		})
+		}
 	}
 
 	return &service.GetAllProductsResponse{Products: productResponses}, nil
