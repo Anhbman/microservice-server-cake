@@ -13,6 +13,7 @@ service Service {
   rpc GetCakeById(GetCakeByIdRequest) returns (GetCakeByIdResponse);
   rpc SearchCake(SearchCakeRequest) returns (SearchCakeResponse);
   rpc UpdateCake(Cake) returns (Cake);
+  rpc GetAllCakes(GetAllCakesRequest) returns (GetAllCakesResponse);
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
   rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse);

@@ -8,13 +8,14 @@ import (
 	"github.com/Anhbman/microservice-server-cake/internal/eventHandler"
 	"github.com/Anhbman/microservice-server-cake/internal/service/cake"
 	"github.com/Anhbman/microservice-server-cake/internal/service/order"
+	orderitem "github.com/Anhbman/microservice-server-cake/internal/service/orderItem"
 	"github.com/Anhbman/microservice-server-cake/internal/service/user"
 	"github.com/Anhbman/microservice-server-cake/internal/storage"
 	"github.com/google/wire"
 )
 
 func InitializeApp() *controller.Controller {
-	wire.Build(storage.InitDB, cake.NewService, user.NewService, order.NewService, controller.NewController)
+	wire.Build(storage.InitDB, cake.NewService, user.NewService, order.NewService, orderitem.NewService, controller.NewController)
 	return &controller.Controller{}
 }
 

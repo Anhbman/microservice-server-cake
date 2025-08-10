@@ -125,3 +125,13 @@ func (p *Service) UpdateCake(cake *pb.Cake) (*pb.Cake, error) {
 		UserId:      uint64(cakeUpdate.UserID),
 	}, nil
 }
+
+func (p *Service) GetAllCakes() ([]*models.Cake, error) {
+	var cakes []*models.Cake
+	err := p.db.Find(&cakes).Error
+	if err != nil {
+		log.Errorf("Cannot get all cakes: %s", err)
+		return nil, twirp.Internal.Errorf("Cannot get all cakes: %w", err)
+	}
+	return cakes, nil
+}

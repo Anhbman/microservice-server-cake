@@ -43,3 +43,10 @@ message GetCakeByIdResponse {
   string image_url = 5;
   uint64 user_id = 6;
 }
+
+message GetAllCakesRequest {
+}
+
+message GetAllCakesResponse {
+  repeated Cake cakes = 1;
+}
