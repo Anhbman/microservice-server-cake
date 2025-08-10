@@ -17,4 +17,6 @@ service Service {
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
   rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse);
   rpc CreateProduct(CreateProductRequest) returns (Product);
+  rpc GetAllProducts(GetAllProductsRequest) returns (GetAllProductsResponse);
+  rpc GetProductById(GetProductByIdRequest) returns (Product);
 }

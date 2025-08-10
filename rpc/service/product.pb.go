@@ -154,6 +154,138 @@ func (x *Product) GetDescription() string {
 	return ""
 }
 
+type GetAllProductsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Products []*Product `protobuf:"bytes,1,rep,name=products,proto3" json:"products,omitempty"`
+}
+
+func (x *GetAllProductsResponse) Reset() {
+	*x = GetAllProductsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_rpc_service_product_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetAllProductsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAllProductsResponse) ProtoMessage() {}
+
+func (x *GetAllProductsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_rpc_service_product_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAllProductsResponse.ProtoReflect.Descriptor instead.
+func (*GetAllProductsResponse) Descriptor() ([]byte, []int) {
+	return file_rpc_service_product_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetAllProductsResponse) GetProducts() []*Product {
+	if x != nil {
+		return x.Products
+	}
+	return nil
+}
+
+type GetProductByIdRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *GetProductByIdRequest) Reset() {
+	*x = GetProductByIdRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_rpc_service_product_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetProductByIdRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProductByIdRequest) ProtoMessage() {}
+
+func (x *GetProductByIdRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_rpc_service_product_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProductByIdRequest.ProtoReflect.Descriptor instead.
+func (*GetProductByIdRequest) Descriptor() ([]byte, []int) {
+	return file_rpc_service_product_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetProductByIdRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type GetAllProductsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *GetAllProductsRequest) Reset() {
+	*x = GetAllProductsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_rpc_service_product_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetAllProductsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAllProductsRequest) ProtoMessage() {}
+
+func (x *GetAllProductsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_rpc_service_product_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAllProductsRequest.ProtoReflect.Descriptor instead.
+func (*GetAllProductsRequest) Descriptor() ([]byte, []int) {
+	return file_rpc_service_product_proto_rawDescGZIP(), []int{4}
+}
+
 var File_rpc_service_product_proto protoreflect.FileDescriptor
 
 var file_rpc_service_product_proto_rawDesc = []byte{
@@ -171,9 +303,18 @@ var file_rpc_service_product_proto_rawDesc = []byte{
 	0x12, 0x1b, 0x0a, 0x09, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x5f, 0x75, 0x72, 0x6c, 0x18, 0x04, 0x20,
 	0x01, 0x28, 0x09, 0x52, 0x08, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x55, 0x72, 0x6c, 0x12, 0x20, 0x0a,
 	0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x05, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x42,
-	0x0e, 0x5a, 0x0c, 0x2f, 0x72, 0x70, 0x63, 0x2f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x22,
+	0x4a, 0x0a, 0x16, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x30, 0x0a, 0x08, 0x70, 0x72, 0x6f,
+	0x64, 0x75, 0x63, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x72, 0x70,
+	0x63, 0x2e, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63,
+	0x74, 0x52, 0x08, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x73, 0x22, 0x27, 0x0a, 0x15, 0x47,
+	0x65, 0x74, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x42, 0x79, 0x49, 0x64, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03,
+	0x52, 0x02, 0x69, 0x64, 0x22, 0x17, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x50, 0x72,
+	0x6f, 0x64, 0x75, 0x63, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x42, 0x0e, 0x5a,
+	0x0c, 0x2f, 0x72, 0x70, 0x63, 0x2f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -188,17 +329,21 @@ func file_rpc_service_product_proto_rawDescGZIP() []byte {
 	return file_rpc_service_product_proto_rawDescData
 }
 
-var file_rpc_service_product_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_rpc_service_product_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_rpc_service_product_proto_goTypes = []any{
-	(*CreateProductRequest)(nil), // 0: rpc.service.CreateProductRequest
-	(*Product)(nil),              // 1: rpc.service.Product
+	(*CreateProductRequest)(nil),   // 0: rpc.service.CreateProductRequest
+	(*Product)(nil),                // 1: rpc.service.Product
+	(*GetAllProductsResponse)(nil), // 2: rpc.service.GetAllProductsResponse
+	(*GetProductByIdRequest)(nil),  // 3: rpc.service.GetProductByIdRequest
+	(*GetAllProductsRequest)(nil),  // 4: rpc.service.GetAllProductsRequest
 }
 var file_rpc_service_product_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1, // 0: rpc.service.GetAllProductsResponse.products:type_name -> rpc.service.Product
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_rpc_service_product_proto_init() }
@@ -231,6 +376,42 @@ func file_rpc_service_product_proto_init() {
 				return nil
 			}
 		}
+		file_rpc_service_product_proto_msgTypes[2].Exporter = func(v any, i int) any {
+			switch v := v.(*GetAllProductsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_rpc_service_product_proto_msgTypes[3].Exporter = func(v any, i int) any {
+			switch v := v.(*GetProductByIdRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_rpc_service_product_proto_msgTypes[4].Exporter = func(v any, i int) any {
+			switch v := v.(*GetAllProductsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -238,7 +419,7 @@ func file_rpc_service_product_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_rpc_service_product_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

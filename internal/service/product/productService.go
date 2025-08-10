@@ -36,3 +36,24 @@ func (p *Service) Create(product *models.Product) (*models.Product, error) {
 	}
 	return product, nil
 }
+
+func (p *Service) GetProductById(id int64) (*models.Product, error) {
+	var product models.Product
+	res := p.db.First(&product, id)
+	if res.Error != nil {
+		if res.Error == gorm.ErrRecordNotFound {
+			return nil, twirp.NotFoundError("Product not found")
+		}
+		return nil, res.Error
+	}
+	return &product, nil
+}
+
+func (p *Service) GetAll() ([]*models.Product, error) {
+	var products []*models.Product
+	res := p.db.Find(&products)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return products, nil
+}

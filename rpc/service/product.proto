@@ -15,3 +15,13 @@ message Product {
   string image_url = 4;
   string description = 5;
 }
+
+message GetAllProductsResponse {
+  repeated Product products = 1;
+}
+
+message GetProductByIdRequest {
+  int64 id = 1;
+}
+
+message GetAllProductsRequest {}

@@ -36,5 +36,46 @@ func (c *Controller) CreateProduct(ctx context.Context, req *service.CreateProdu
 		Name:  resp.Name,
 		Price: resp.Price,
 	}, nil
+}
 
+func (c *Controller) GetProductById(ctx context.Context, req *service.GetProductByIdRequest) (*service.Product, error) {
+	if req.GetId() == 0 {
+		log.Errorf("Product ID is required")
+		return nil, twirp.InvalidArgumentError("Product ID is required", "ID")
+	}
+
+	product, err := c.productService.GetProductById(req.GetId())
+	if err != nil {
+		log.Errorf("Failed to get product by ID: %v", err)
+		return nil, err
+	}
+
+	return &service.Product{
+		Id:          int64(product.ID),
+		Name:        product.Name,
+		Price:       product.Price,
+		Description: product.Description,
+		ImageUrl:    product.ImageURL,
+	}, nil
+}
+
+func (c *Controller) GetAllProducts(ctx context.Context, req *service.GetAllProductsRequest) (*service.GetAllProductsResponse, error) {
+	products, err := c.productService.GetAll()
+	if err != nil {
+		log.Errorf("Failed to get all products: %v", err)
+		return nil, err
+	}
+
+	productResponses := make([]*service.Product, len(products))
+	for _, product := range products {
+		productResponses = append(productResponses, &service.Product{
+			Id:          int64(product.ID),
+			Name:        product.Name,
+			Price:       product.Price,
+			Description: product.Description,
+			ImageUrl:    product.ImageURL,
+		})
+	}
+
+	return &service.GetAllProductsResponse{Products: productResponses}, nil
 }
