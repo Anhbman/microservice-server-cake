@@ -23,25 +23,18 @@ func (c *Controller) CreateOrder(ctx context.Context, req *service.CreateOrderRe
 		UserID: int64(req.GetUserId()),
 	}
 
-	_, err := c.orderService.CreateOrder(order)
-	if err != nil {
-		log.Errorf("Cannot create order: %s", err)
-		return nil, twirp.Internal.Errorf("Cannot create order: %w", err)
-	}
-
 	orderItems := make([]*models.OrderItem, len(req.GetItems()))
 	for i, item := range req.GetItems() {
 		orderItems[i] = &models.OrderItem{
-			OrderID:  uint64(order.ID),
 			CakeID:   item.GetCakeId(),
 			Quantity: item.GetQuantity(),
 		}
 	}
 
-	_, err = c.orderItemService.CreateOrderItem(orderItems)
+	order, err := c.orderService.CreateOrderWithItems(order, orderItems)
 	if err != nil {
-		log.Errorf("Cannot create order items: %s", err)
-		return nil, twirp.Internal.Errorf("Cannot create order items: %w", err)
+		log.Errorf("Cannot create order: %+v", err)
+		return nil, twirp.Internal.Errorf("Cannot create order: %w", err)
 	}
 
 	OIs := make([]*service.OrderItem, len(orderItems))

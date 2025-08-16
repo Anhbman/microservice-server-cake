@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/Anhbman/microservice-server-cake/internal/models"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
@@ -37,10 +38,10 @@ func InitDB() *gorm.DB {
 
 	fmt.Println("Successfully connected to database")
 
-	// err = db.AutoMigrate(&models.Cake{}, &models.User{}, &models.OrderItem{})
-	// if err != nil {
-	// 	log.Fatalf("Error migrating database: %v", err)
-	// }
+	err = db.AutoMigrate(&models.Cake{}, &models.User{}, &models.OrderItem{})
+	if err != nil {
+		log.Fatalf("Error migrating database: %v", err)
+	}
 	return db
 }
 
